@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Epilepsia – Turma 244</title>
+<style>
+html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:system-ui,sans-serif}
+#stage{position:absolute;left:50%;top:50%;aspect-ratio:16/9;background:#fff;transform:translate(-50%,-50%);width:min(100vw,177.78vh)}
+#stage img{position:absolute;inset:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
+#vid{position:absolute;display:none;background:#000;left:32.4%;top:2.9%;width:32.2%;height:91.2%;object-fit:contain}
+.zone{position:absolute;top:0;bottom:0;width:12%;cursor:pointer;z-index:2}
+#prev{left:0}#next{right:0}
+#ui{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;background:#000a;color:#fff;padding:6px 12px;border-radius:99px;font-size:14px;z-index:5;transition:opacity .4s}
+#ui button{background:none;border:0;color:#fff;font-size:18px;cursor:pointer;padding:2px 8px}
+body.idle #ui{opacity:0}body.idle{cursor:none}
+#end{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#26334a;background:#fff;overflow:hidden}
+#end svg{position:absolute;width:34%}
+#end .tl{left:0;top:0}#end .br{right:0;bottom:0;transform:rotate(180deg)}
+#end h2{font-size:7.5vw;letter-spacing:.12em;margin:0;font-weight:800;position:relative}
+#end p{font-size:2.2vw;margin:1.2vw 0 0;position:relative}
+#end .s{font-size:1.6vw;opacity:.8;margin-top:3vw}
+@media(min-aspect-ratio:16/9){#end h2{font-size:13.3vh}#end p{font-size:3.9vh}#end .s{font-size:2.8vh}}
+</style></head><body>
+<div id="stage">
+  <img id="img" alt="slide">
+  <video id="vid" src="video_epilepsia.mp4" controls playsinline preload="auto"></video>
+  <div id="end"><svg viewBox="0 0 300 200" class="tl"><path d="M0 0H300C230 20 190 60 160 100 130 150 60 190 0 170Z" fill="#62d9ff"/><path d="M0 0H270C190 15 130 45 100 90 70 130 30 150 0 140Z" fill="#2020ff"/></svg><svg viewBox="0 0 300 200" class="br"><path d="M0 0H300C230 20 190 60 160 100 130 150 60 190 0 170Z" fill="#62d9ff"/><path d="M0 0H270C190 15 130 45 100 90 70 130 30 150 0 140Z" fill="#2020ff"/></svg><h2>OBRIGADO!</h2><p>Agradecemos a atenção de todos</p><p class="s">Aline · Camila · Clara · Mayara · Tainara<br>Turma 244 · Profª Geisa – Clínica Médica</p></div>
+  <div class="zone" id="prev"></div><div class="zone" id="next"></div>
+</div>
+<div id="ui"><button id="b1" title="Anterior">◀</button><span id="cnt"></span><button id="b2" title="Próximo">▶</button><button id="bf" title="Tela cheia (F)">⛶</button></div>
+<script>
+const N=15,IMGS=14,end=document.getElementById('end'),VIDEO_SLIDE=13,img=document.getElementById('img'),vid=document.getElementById('vid'),cnt=document.getElementById('cnt');
+let i=Math.min(N,Math.max(1,parseInt(location.hash.slice(1))||1));
+const pad=n=>String(n).padStart(2,'0');
+for(let k=1;k<=IMGS;k++)new Image().src='slides/s-'+pad(k)+'.jpg';
+function show(n){
+  i=Math.min(N,Math.max(1,n));
+  if(i<=IMGS)img.src='slides/s-'+pad(i)+'.jpg';
+  img.style.display=i<=IMGS?'block':'none';end.style.display=i>IMGS?'flex':'none';
+  cnt.textContent=i+' / '+N;
+  history.replaceState(null,'','#'+i);
+  vid.pause();
+  vid.style.display=i===VIDEO_SLIDE?'block':'none';
+  if(i!==VIDEO_SLIDE)vid.currentTime=0;
+}
+function fs(){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}
+const go=d=>show(i+d);
+let armed=true;
+function arm(e){if(!armed||e.key==='Escape')return;armed=false;if(e.type==='keydown'&&/^[fF]$/.test(e.key))return;document.documentElement.requestFullscreen().catch(()=>{})}
+addEventListener('click',arm);addEventListener('keydown',arm,true);
+prev.onclick=b1.onclick=()=>go(-1);next.onclick=b2.onclick=()=>go(1);bf.onclick=fs;
+addEventListener('keydown',e=>{
+  const k=e.key;
+  if(k==='ArrowRight'||k==='PageDown'||k==='ArrowDown'){go(1)}
+  else if(k==='ArrowLeft'||k==='PageUp'||k==='ArrowUp'){go(-1)}
+  else if(k==='Home')show(1);else if(k==='End')show(N);
+  else if(k==='f'||k==='F')fs();
+  else if((k===' '||k==='Enter')&&i===VIDEO_SLIDE){vid.paused?vid.play():vid.pause()}
+  else if(k===' '||k==='Enter'){go(1)}
+  else return;
+  e.preventDefault();
+});
+let t,tx;
+addEventListener('mousemove',()=>{document.body.classList.remove('idle');clearTimeout(t);t=setTimeout(()=>document.body.classList.add('idle'),2500)});
+addEventListener('touchstart',e=>tx=e.touches[0].clientX);
+addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-tx;if(Math.abs(d)>60)go(d<0?1:-1)});
+show(i);
+</script></body></html>
